@@ -40,7 +40,7 @@ pw = ''													# Add your password here if desired
 # Script variables
 host = ''												# Host variable used for storing which host/switch to search for a user on currently
 hostCoreSW = '10.x.x.x'									# Add the starting core switch here
-hostCoreASA = '10.x.x.x'								# Add a firewall here if one may host any potential vlans
+#hostCoreASA = '10.x.x.x'								# Add a firewall here if one may host any potential vlans; still a WIP
 hostHops = []											# Variable for storing each hop in path from core to end host (when searching for a client)
 hostHopsPorts = []										# Variable for storing the interface on each hop in path from core to end host (when searching for a client)
 wifiClient = False										# Variable to determine if client looked up is on wifi; initialize as False
@@ -72,9 +72,10 @@ def findIpByMac(addr, host):
 
 	# If MAC address isn't in ARP table, or listed as Incomplete, check a firewall to see if its hosted there
 	if fn.errorCheckEmptyIncResult(result):
-		showArp = "show arp | include "
+		# Currently not fully implemented yet
+		'''showArp = "show arp | include "
 		command = showArp + addr
-		host = hostCoreASA
+		host = hostCoreASA'''
 
 		result = sfn.runSSHCommandASA(command, host, creds)
 		# If MAC address isn't in ARP table, or listed as Incomplete, exit script
@@ -117,7 +118,8 @@ def findIpByMac(addr, host):
 def findMacbyIp(addr, host):
 	# Find what the MAC address is associated with the provided IP address
 	# If client IP address is on a vlan hosted on a firewall, pull MAC from firewall
-	if (
+	# Currently not fully implemented yet
+	'''if (
 			"10.x.x." in ipAddr or
 			"10.x.x." in ipAddr or
 			"10.x.x." in ipAddr
@@ -129,7 +131,10 @@ def findMacbyIp(addr, host):
 	# If client IP address is not on a firewall-hosted vlan, pull MAC from Core
 	else:
 		showArp = "show ip arp | include "
-		asaClient = False
+		asaClient = False'''
+
+	showArp = "show ip arp | include "
+	asaClient = False
 	# Set command to run for ARP table lookup
 	command = showArp + addr + "\n"
 	# Run command, save output to 'result'
