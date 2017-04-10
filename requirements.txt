@@ -1,0 +1,9 @@
+cryptography==1.5
+extern==0.2.1
+ndg-httpsclient==0.4.2
+netmiko==1.2.5
+O365==0.9.5
+paramiko==1.16.0
+pexpect==4.1.dev0
+python-dateutil==1.5
+requests==2.13.0
