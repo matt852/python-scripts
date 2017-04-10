@@ -8,3 +8,5 @@ Folders:
 2. lib - Stores all of my custom libraries I've written for my scripts
 3. logs - If any logs or output are saved to a file, it will go here
 4. textfiles - Any files to be used for input should go here, usually as a .txt file unless otherwise specified
+
+You can find my blog at https://iwroteascript.com for more info on everything listed.
