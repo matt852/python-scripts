@@ -361,134 +361,135 @@ while True:
 
 		continue
 
-	# If device shows up as on an Ethernet interface, but the switch is the starting core switch
-	# that means the host is on another switch, as there shouldn't be any hosts directly plugged into the core switch
-	elif ("Eth" in iface) and (host == hostCoreSW):
-		# No clients should ever be plugged directly into the Core,
-		# so it is assumed it's a neighbor switch not in a port-channel
-
-		# Set CDP lookup command for NX-OS
-		command2 = "show cdp neighbors interface %s detail | inc \"IPv4 Address\"" % (iface)
-
-		# Run 2nd command, save output to 'result'
-		result = sfn.runSSHCommand(command2, host, creds)
-
-		# Reduce all spacing to just a single space per section
-		result2 = fn.replaceDoubleSpaces(result)
-		# Split string by spaces.  We are looking for the 4th field
-		ipAddressList = result2.split(" ")
-		# Strip any newlines from the string, store as new host
-		host = fn.stripNewline(ipAddressList[3])
-
-		# Check to see if client is wireless (on wireless controller)
-		wifiClient, wifiNum = fn.wifiCheck(host)
-		if wifiClient:
-			break
-
-		continue
-
-	# Device is on this switch by MAC address table
 	elif ("Eth" in iface) or ("Gi" in iface) or ("Fa" in iface):
-		print "Found!  Compiling info, standby..."
-		# Device is on this switch by MAC address table
-		# Begin: Find ISE authentication status on the interface
-		i = 0
-		# Auth counter
-		l = 0
-		commandAuth = "show authentication sessions interface %s details | i Domain|User-Name|Status|Success" % (iface)
-		pipeCount = commandAuth.count('|')
+		# If device shows up as on the starting core switch
+		# that means the host is on another switch, as there shouldn't be any hosts directly plugged into the core switch
+		if (host == hostCoreSW):
+			# No clients should ever be plugged directly into the Core,
+			# so it is assumed it's a neighbor switch not in a port-channel
 
-		resultAuth = sfn.runSSHCommand(commandAuth, host, creds)
+			# Set CDP lookup command for NX-OS
+			command2 = "show cdp neighbors interface %s detail | inc \"IPv4 Address\"" % (iface)
 
-		if resultAuth:
-			resultCount = fn.textBlock_len(resultAuth.split("\n"))
-			resultAuth2 = fn.replaceDoubleSpaces(resultAuth)
+			# Run 2nd command, save output to 'result'
+			result = sfn.runSSHCommand(command2, host, creds)
 
-			for result in resultAuth2.split("\n"):
-				i += 1
-				k = 1
-				# Increments once for each line in resultAuth2
-				l += 1
+			# Reduce all spacing to just a single space per section
+			result2 = fn.replaceDoubleSpaces(result)
+			# Split string by spaces.  We are looking for the 4th field
+			ipAddressList = result2.split(" ")
+			# Strip any newlines from the string, store as new host
+			host = fn.stripNewline(ipAddressList[3])
 
-				result2 = fn.replaceDoubleSpaces(result)
-				resultList = result2.split(" ")
-				for item in resultList:
-					k += 1
-					if k == pipeCount:
-						if i == 1:
-							authClassVar.user = item
-						elif i == 2:
-							authClassVar.status = item
-						elif i == 3:
-							authClassVar.domain = item
+			# Check to see if client is wireless (on wireless controller)
+			wifiClient, wlcNum = fn.wifiCheck(host)
+			if wifiClient:
+				break
 
-					elif k == pipeCount - 1 and i == 4:
-						authClassVar.authtype = item
+			continue
 
-				if i == pipeCount:
-					i = 0
-					m = l / pipeCount
-					d[m].append(authClassVar.user)
-					d[m].append(authClassVar.status)
-					d[m].append(authClassVar.domain)
-					d[m].append(authClassVar.authtype)
-
-			dLength = len(d)
-
-		# End: Find ISE authentication status on the interface
-
-		# Do a reverse DNS lookup on the host IP address
-		hostName = fn.reverseDNSNetwork(host, creds)
-		print "\n"
-		print "Client information:"
-		print "\tMAC address ...................... %s" % (fn.convertMacFormatDec2Col(macAddr))
-		print "\tIP address ....................... %s\n" % (ipAddr)
-		print "Host switch information:"
-		print "\tSwitch name ...................... %s" % (hostName)
-		print "\tSwitch IP address ................ %s" % (host)
-		print "\tInterface client is found on ..... %s\n" % (iface)
-		print "Authentication information:"
-		if d:
-			print "   Data Domain:"
-			t = 1
-			while t <= dLength:
-				value = d[t]
-				if value[2] == "VOICE":
-					authVoiceDomain = True
-					authVoiceUser = value[0]
-					authVoiceStatus = value[1]
-					authVoiceType = value[3]
-				elif value[2] == "DATA":
-					print "\tUser-Name ........................ %s" % (value[0])
-					print "\tStatus ........................... %s" % (value[1])
-					print "\tAuth Type ........................ %s\n" % (value[3])
-				t += 1
-			if authVoiceDomain:
-				print "   Voice Domain:"
-				print "\tUser-Name ........................ %s" % (authVoiceUser)
-				print "\tStatus ........................... %s" % (authVoiceStatus)
-				print "\tAuth Type ........................ %s" % (authVoiceType)
 		else:
-			print "\tNo currently active authentication sessions on this interface"
+			print "Found!  Compiling info, standby..."
+			# Device is on this switch by MAC address table
+			# Begin: Find ISE authentication status on the interface
+			i = 0
+			# Auth counter
+			l = 0
+			commandAuth = "show authentication sessions interface %s details | i Domain|User-Name|Status|Success" % (iface)
+			pipeCount = commandAuth.count('|')
 
-		# Show path from core to client through network as found by script
-		print "\n\nNetwork path to host:"
-		hostHopsCounter = 0
-		while hostHopsCounter < len(hostHops):
-			# Do a reverse DNS lookup on each network device in path to endpiont IP address. Display IP address of switch if reverse DNS fails
-			print "%s <-- %s -----> " % (fn.reverseDNSEndpoint(hostHops[hostHopsCounter]), hostHopsPorts[hostHopsCounter].replace("Port-channel","Po")),
-			hostHopsCounter += 1
-		# Find hostname for IP if reverse DNS is successful and list it
-		print fn.reverseDNSEndpoint(ipAddr)
+			resultAuth = sfn.runSSHCommand(commandAuth, host, creds)
 
-		raw_input("\n\nPress Enter to continue...")
+			if resultAuth:
+				resultCount = fn.textBlock_len(resultAuth.split("\n"))
+				resultAuth2 = fn.replaceDoubleSpaces(resultAuth)
 
-		print "\n\nConfig settings for interface %s on %s:" % (iface, hostName)
-		print sfn.showIntRunConfig(host, iface, creds) + "\n"
-		break
+				for result in resultAuth2.split("\n"):
+					i += 1
+					k = 1
+					# Increments once for each line in resultAuth2
+					l += 1
+
+					result2 = fn.replaceDoubleSpaces(result)
+					resultList = result2.split(" ")
+					for item in resultList:
+						k += 1
+						if k == pipeCount:
+							if i == 1:
+								authClassVar.user = item
+							elif i == 2:
+								authClassVar.status = item
+							elif i == 3:
+								authClassVar.domain = item
+
+						elif k == pipeCount - 1 and i == 4:
+							authClassVar.authtype = item
+
+					if i == pipeCount:
+						i = 0
+						m = l / pipeCount
+						d[m].append(authClassVar.user)
+						d[m].append(authClassVar.status)
+						d[m].append(authClassVar.domain)
+						d[m].append(authClassVar.authtype)
+
+				dLength = len(d)
+
+			# End: Find ISE authentication status on the interface
+
+			# Do a reverse DNS lookup on the host IP address
+			hostName = fn.reverseDNSNetwork(host, creds)
+			print "\n"
+			print "Client information:"
+			print "\tMAC address ...................... %s" % (fn.convertMacFormatDec2Col(macAddr))
+			print "\tIP address ....................... %s\n" % (ipAddr)
+			print "Host switch information:"
+			print "\tSwitch name ...................... %s" % (hostName)
+			print "\tSwitch IP address ................ %s" % (host)
+			print "\tInterface client is found on ..... %s\n" % (iface)
+			print "Authentication information:"
+			if d:
+				print "   Data Domain:"
+				t = 1
+				while t <= dLength:
+					value = d[t]
+					if value[2] == "VOICE":
+						authVoiceDomain = True
+						authVoiceUser = value[0]
+						authVoiceStatus = value[1]
+						authVoiceType = value[3]
+					elif value[2] == "DATA":
+						print "\tUser-Name ........................ %s" % (value[0])
+						print "\tStatus ........................... %s" % (value[1])
+						print "\tAuth Type ........................ %s\n" % (value[3])
+					t += 1
+				if authVoiceDomain:
+					print "   Voice Domain:"
+					print "\tUser-Name ........................ %s" % (authVoiceUser)
+					print "\tStatus ........................... %s" % (authVoiceStatus)
+					print "\tAuth Type ........................ %s" % (authVoiceType)
+			else:
+				print "\tNo currently active authentication sessions on this interface"
+
+			# Show path from core to client through network as found by script
+			print "\n\nNetwork path to host:"
+			hostHopsCounter = 0
+			while hostHopsCounter < len(hostHops):
+				# Do a reverse DNS lookup on each network device in path to endpiont IP address. Display IP address of switch if reverse DNS fails
+				print "%s <-- %s -----> " % (fn.reverseDNSEndpoint(hostHops[hostHopsCounter]), hostHopsPorts[hostHopsCounter].replace("Port-channel","Po")),
+				hostHopsCounter += 1
+			# Find hostname for IP if reverse DNS is successful and list it
+			print fn.reverseDNSEndpoint(ipAddr)
+
+			raw_input("\n\nPress Enter to continue...")
+
+			print "\n\nConfig settings for interface %s on %s:" % (iface, hostName)
+			print sfn.showIntRunConfig(host, iface, creds) + "\n"
+			break
 	else:
 		# Mainly used for debugging.  This should never trigger
-		fn.debugScript('103')
+		fn.debugScript('Host is either not found, found on an unsupported or inaccessible upstream switch, or multiple instances of host found when looking it up by MAC address (currently unsupported)')
+
 # If wireless client, skip menu and exit script
 if wifiClient:
 	print "\nClient is wireless %s.  Exiting script.\n" % wifiNum
