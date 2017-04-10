@@ -455,3 +455,19 @@ def getCustomInput(typeOfInput, inputIsConfigCmds):
 	text = text.splitlines()
 	# Return all user input as a single variable/string
 	return text
+
+# Returns NXOS if host is an NX-OS switch, via provided IP address
+# Returns IOS if host is an IOS switch, via provided IP address
+# Otherwise returns INC if unknown
+def isHostIOSorNXOS(host):
+	# Check if  from host "show version" output
+	result = sfn.runSSHCommand("show version | inc Software", host, creds)
+	# Splits results by new lines
+	resultList = result.split("\n")
+	# Searches first line of returned result to determine OS type
+	if 'Cisco Nexus Operating System (NX-OS)' in resultList[0]:
+		return "NXOS"
+	elif 'Cisco IOS Software' in resultList[0]:
+		return "IOS"
+	else:
+		return "Inc"

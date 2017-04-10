@@ -249,7 +249,7 @@ while True:
 		if not result:
 			commandPing = "ping " + ipAddr
 			sfn.runSSHCommand(commandPing, host, creds)
-			time.sleep(1)
+			sleep(1)
 			a += 1
 		else:
 			# Break from 'for' loop
@@ -310,10 +310,12 @@ while True:
 
 		# Find IP address for switch where MAC address can be found off of
 		# Different commands if NX-OS vs IOS/IOS-XE
-		if host == hostCoreSW:
+		if fn.isHostIOSorNXOS(host) == "NXOS":
 			command3 = "show cdp neighbors interface %s detail | inc \"IPv4 Address\"" % (portChannelInt)
-		else:
+		elif fn.isHostIOSorNXOS(host) == "IOS":
 			command3 = "show cdp neighbors %s detail | inc IP address" % (portChannelInt)
+		else:
+			fn.debugErrorOut('Command3 NXOS vs IOS')
 
 		# Run 3rd command, save output to 'result'
 		result = sfn.runSSHCommand(command3, host, creds)
@@ -335,10 +337,12 @@ while True:
 
 		# Find IP address for switch where MAC address can be found off of
 		# Different commands if NX-OS vs IOS/IOS-XE
-		if host == hostCoreSW:
+		if fn.isHostIOSorNXOS(host) == "NXOS":
 			command2 = "show cdp neighbors interface %s detail | inc \"IPv4 Address\"" % (teAbbrev)
-		else:
+		elif fn.isHostIOSorNXOS(host) == "IOS":
 			command2 = "show cdp neighbors %s detail | inc IP address" % (teAbbrev)
+		else:
+			fn.debugErrorOut('Command2 NXOS vs IOS')
 
 		# Run 2nd command, save output to 'result'
 		result = sfn.runSSHCommand(command2, host, creds)
