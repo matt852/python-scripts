@@ -75,9 +75,11 @@ def findIpByMac(addr, host):
 		# Currently not fully implemented yet
 		'''showArp = "show arp | include "
 		command = showArp + addr
-		host = hostCoreASA'''
+		host = hostCoreASA
+		asaClient = True'''
 
-		result = sfn.runSSHCommandASA(command, host, creds)
+		if asaClient:
+			result = sfn.runSSHCommandASA(command, host, creds)
 		# If MAC address isn't in ARP table, or listed as Incomplete, exit script
 		if fn.errorCheckEmptyIncResult(result):
 			print "Client MAC address is not found on the core switch or internal ASA.  Error #201.  Please try again"
