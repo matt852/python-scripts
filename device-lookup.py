@@ -46,7 +46,7 @@ hostHopsPorts = []										# Variable for storing the interface on each hop in 
 wifiClient = False										# Variable to determine if client looked up is on wifi; initialize as False
 d = defaultdict(list)									# Create new empty dictonary for storing the auth class
 authClassVar = IntAuthResult('', '', '', '')			# Create new auth class instance
-# ISE authentication variables
+# NAC authentication variables
 authVoiceDomain = False
 authVoiceUser = ''
 authVoiceStatus = ''
@@ -391,7 +391,7 @@ while True:
 		else:
 			print "Found!  Compiling info, standby..."
 			# Device is on this switch by MAC address table
-			# Begin: Find ISE authentication status on the interface
+			# Begin: Find NAC authentication status on the interface
 			i = 0
 			# Auth counter
 			l = 0
@@ -435,7 +435,7 @@ while True:
 
 				dLength = len(d)
 
-			# End: Find ISE authentication status on the interface
+			# End: Find NAC authentication status on the interface
 
 			# Do a reverse DNS lookup on the host IP address
 			hostName = fn.reverseDNSNetwork(host, creds)
