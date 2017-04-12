@@ -66,6 +66,7 @@ srcOGNameDict = dict()
 dstOGName = ''
 portOGName = ''
 configCommandsList = []
+backoutCommandsList = []
 changeTicket = ''
 ranOnce = False
 newSrcOGCounter = 0
@@ -533,12 +534,35 @@ for key, value in intToACLDict.iteritems():
 configCommandsList.append("end")
 configCommandsList.append("wr mem")
 
-# Display configuration commands to user
-print "\n\n"
+# Display configuration commands to user as the Implementation Plan
+print "\n\nImplementation Plan:"
 for x in configCommandsList:
 	print x
 print "\n\n"
 
+# Create command list of backout commands
+# Decrement counter
+i = -1
+# Repeat for total number of lines in list
+for x in range(len(configCommandsList)):
+	# Only back out the ACL and OG commands
+	if 'object-group' in configCommandsList[i] or 'access-list' in configCommandsList[i]:
+		# Add each command to the backout list with a 'no' in front
+		backoutCommandsList.append("no %s" % configCommandsList[i])
+	# Decrement counter to work backwards up configCommandsList
+	i -= 1
+
+# Add backing out and saving config
+backoutCommandsList.append("end")
+backoutCommandsList.append("wr mem")
+
+# Display all commands to user as a Backout Plan to be used in ticket creation
+print "\n\nBackout Plan:"
+for x in backoutCommandsList:
+	print x
+print "\n\n"
+
+# Confirm with user config looks good and if user wants to execute configuration settings now
 while True:
 	userConfirm = raw_input("Confirm these configs are correct before execution (y/n): ")
 	# Check to see if entered value is 'y' or 'n' only

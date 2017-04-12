@@ -114,7 +114,7 @@ def removeNetworkLineFromOG(ip, mask, cmdList):
 	# Returns False if the parent object-group was not deleted (it was not the only object in the OG)
 	return cmdList, False
 
-# Splits a provided string by spaces and returns as a list
+# Split a string of text by spaces, reduces any spots of multiple whitespace to a single space only
 def splitString(x):
 	# Store line in a new string variable
 	line = x
